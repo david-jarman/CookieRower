@@ -1,31 +1,40 @@
 import pyrow
-import socket
 import json
-
-BROADCAST_ADDRESS = "255.255.255.255"
-BROADCAST_PORT = 6969
-
-def startBroadcast():
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
-    device = getRowingDevice()
-    if device != None:
-        message = json.dumps(device.get_monitor())
-        sock.sendto(message, (BROADCAST_ADDRESS, BROADCAST_PORT))
+import time
+import sched
+from SimpleWebSocketServer import WebSocket, SimpleWebSocketServer, SimpleSSLWebSocketServer
 
 def getRowingDevice():
     devices = list(pyrow.find())
-    
     if len(devices) > 0:
         erg = pyrow.pyrow(devices[0])
         if erg != None:
+            print 'rowing machine found'
             return erg
 
+    print 'No devices found'
     return None
 
-startBroadcast()
+rowingDevice = getRowingDevice()
+s = sched.scheduler(time.time, time.sleep)
 
-print('done!')
+def sendRowingStatus(sock):
+    print 'sending message'
+    message = json.dumps(rowingDevice.get_monitor())
+    sock.sendMessage(message)
 
+class RowWebSocket(WebSocket):
+     
+    def handleMessage(self):
+        print 'handling message'
+
+    def handleConnected(self):
+        while 1:
+            s.enter(1, 1, sendRowingStatus, (self,))
+            s.run()
+
+    def handleClose(self):
+        print 'device closed'
+
+server = SimpleWebSocketServer('', 8080, RowWebSocket)
+server.serveforever()
