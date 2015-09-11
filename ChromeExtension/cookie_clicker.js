@@ -28,20 +28,18 @@ function receiveWorkoutInfo(e) {
 		console.log("about to click this many times: " + cookie_click_count);
 		
 		for (var i = 0; i < cookie_click_count; i++) {
-			cookie.click();
+			click_the_cookie(cookie, i);
 		}
 		
 		prev_time = time;
 	}
 }
 
-// Sample data from rowing machine
-// calhr: 864.4224
-// calories: 1
-// distance: 35.9
-// heartrate: 0
-// pace: 128.74826901045958
-// power: 164
-// spm: 25
-// status: 1
-// time: 11.21
+function click_the_cookie(cookie, i) {
+	console.log(i);
+	var timeout = i * 10;
+	setTimeout(function() {
+		cookie.click();
+	},
+	timeout);
+}
