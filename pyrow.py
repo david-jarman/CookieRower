@@ -106,7 +106,7 @@ class pyrow(object):
         if forceplot:
             #get amount of returned data in bytes
             datapoints = results['CSAFE_PM_GET_FORCEPLOTDATA'][0] /2
-            monitor['forceplot'] = results['CSAFE_PM_GET_FORCEPLOTDATA'][1:(datapoints+1)]
+            monitor['forceplot'] = results['CSAFE_PM_GET_FORCEPLOTDATA'][1:int(datapoints+1)]
             monitor['strokestate'] = results['CSAFE_PM_GET_STROKESTATE'][0]
 
         monitor['status'] = results['CSAFE_GETSTATUS_CMD'][0] & 0xF
@@ -123,7 +123,7 @@ class pyrow(object):
 
         forceplot = {}
         datapoints = results['CSAFE_PM_GET_FORCEPLOTDATA'][0] / 2
-        forceplot['forceplot'] = results['CSAFE_PM_GET_FORCEPLOTDATA'][1:(datapoints+1)]
+        forceplot['forceplot'] = results['CSAFE_PM_GET_FORCEPLOTDATA'][1:int(datapoints+1)]
         forceplot['strokestate'] = results['CSAFE_PM_GET_STROKESTATE'][0]
 
         forceplot['status'] = results['CSAFE_GETSTATUS_CMD'][0] & 0xF
@@ -176,6 +176,20 @@ class pyrow(object):
         ergdata['status'] = results['CSAFE_GETSTATUS_CMD'][0] & 0xF
 
         return ergdata
+
+
+    def get_status_2(self):
+        """
+        Returns the status of the erg
+        """
+
+        command = ['CSAFE_GETSTATUS_CMD', ]
+        results = self.send(command)
+
+        status = {}
+        status['status'] = results['CSAFE_GETSTATUS_CMD'][0] 
+
+        return status
 
     def get_status(self):
         """

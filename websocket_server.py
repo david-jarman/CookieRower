@@ -4,39 +4,44 @@ import asyncio
 from autobahn.asyncio.websocket import WebSocketServerProtocol
 from autobahn.asyncio.websocket import WebSocketServerFactory
 
-@asyncio.coroutine
-def start_sending_rowing_info(server):
-    machines = []
-    try:
-        #print("about to find devices")
-        machines = list(pyrow.find())
-    except:
-        print("Error while finding machines")
-
-    if len(machines) > 0:
-        rowing_machine = machines[0]
-        erg = pyrow.pyrow(rowing_machine)
-        #print("machine found!")
-        while True:
-            message = json.dumps(erg.get_monitor())
-            #print(message)
-            message = message.encode('utf8')
-            server.sendMessage(message, isBinary=False)
-            yield from asyncio.sleep(1)
-    else:
-        print('No machines connected')
-
 class MyServerProtocol(WebSocketServerProtocol):
+
+    def __init__(self):
+        self.is_open = False
 
     def onOpen(self):
         try:
-            yield from start_sending_rowing_info(self)
+            self.is_open = True
+            yield from self.start_sending_rowing_info()
         except:
             print("fail")
 
-    def onMessage(self, payload, isBinary):
-        yield from asyncio.sleep(10)
-        self.sendMessage(payload, isBinary)
+    def onClose(self, wasClean, code, reason):
+        print("closing time")
+        self.is_open = False
+
+    @asyncio.coroutine
+    def start_sending_rowing_info(self):
+        machines = list(pyrow.find())
+
+        if len(machines) > 0:
+            rowing_machine = machines[0]
+            erg = pyrow.pyrow(rowing_machine)
+
+            while self.is_open:
+                monitor = erg.get_monitor(forceplot=True)
+
+                message = json.dumps(monitor).encode('utf8')
+                try:
+                    self.sendMessage(message, isBinary=False)
+                except:
+                    print("couldn't send message")
+
+                yield from asyncio.sleep(2)
+        else:
+            print('No machines connected')
+
+
 
 factory = WebSocketServerFactory()
 factory.protocol = MyServerProtocol
