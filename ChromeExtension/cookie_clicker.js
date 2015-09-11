@@ -7,6 +7,7 @@ chrome.runtime.onMessage.addListener(
 	});
 	
 var prev_time = 0;
+var prev_distance = 0;
 	
 function receiveWorkoutInfo(e) {
 	var cookie = document.getElementById('bigCookie')
@@ -22,9 +23,19 @@ function receiveWorkoutInfo(e) {
 		var spm = data.spm;
 		
 		var state = stroke_state - 1;
-		var time_delta = time - prev_time;
 		
-		var cookie_click_count = state * power * time_delta;
+		if (prev_time == 0 || time < prev_time) {
+			prev_time = time;
+		}
+		
+		if (prev_distance == 0 || distance < prev_distance) {
+			prev_distance = distance;
+		}
+		
+		var time_delta = time - prev_time;
+		var distance_delta = distance - prev_distance;
+		
+		var cookie_click_count = distance_delta * time_delta;
 		console.log("about to click this many times: " + cookie_click_count);
 		
 		for (var i = 0; i < cookie_click_count; i++) {
