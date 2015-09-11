@@ -3,6 +3,18 @@ chrome.runtime.onMessage.addListener(
 		var websocket_url = request.url;
 		var ws = new WebSocket(websocket_url);
 		
+		ws.onopen = function() {
+			chrome.runtime.sendMessage({status:"Open"});
+		};
+		
+		ws.onclose = function() {
+			chrome.runtime.sendMessage({status:"Closed"});
+		};
+		
+		ws.onerror = function() {
+			chrome.runtime.sendMessage({status:"Error"});
+		};
+		
 		ws.onmessage = receiveWorkoutInfo;
 	});
 	

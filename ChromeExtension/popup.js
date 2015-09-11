@@ -29,16 +29,14 @@ function start_listening() {
 	};
 	
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		chrome.tabs.sendMessage(tabs[0].id, url_package, function(response) {
-			console.log(response.farewell);
-		});
+		chrome.tabs.sendMessage(tabs[0].id, url_package);
 	});
 	
-	// chrome.runtime.getBackgroundPage(function(page)
-	// {
-		// if (page != null) {
-			// var ws = new WebSocket('ws://' + url + ':' + port);
-			// ws.onmessage = page.receiveMessage;
-		// }
-	// });
+chrome.runtime.onMessage.addListener(
+	function(request, sender, sendResponse) {
+		var status = request.status;
+		var status_ui = document.getElementById('status');
+		
+		status_ui.innerHTML = 'Status: ' + status;
+	});
 }
