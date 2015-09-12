@@ -31,12 +31,13 @@ function start_listening() {
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
 		chrome.tabs.sendMessage(tabs[0].id, url_package);
 	});
-	
-chrome.runtime.onMessage.addListener(
-	function(request, sender, sendResponse) {
-		var status = request.status;
-		var status_ui = document.getElementById('status');
-		
-		status_ui.innerHTML = 'Status: ' + status;
-	});
 }
+
+function getStatus(request, sender, sendResponse) {
+	var status = request.status;
+	var status_ui = document.getElementById('status');
+	
+	status_ui.innerHTML = 'Status: ' + status;
+}
+
+chrome.runtime.onMessage.addListener(getStatus);

@@ -16,12 +16,20 @@
 		"48": "icon48.png",
 		"128": "icon128.png"
 	},
-	"browser_action": {
-		"default_popup": "popup.html",
-		"default_title": "Cookie rower"
+	"page_action": {
+		"default_icon": {
+			"19": "icon19.png",
+			"38": "icon38.png"
+		},
+		"default_title": "Cookie Rower",
+		"default_popup": "popup.html"
 	},
 	"permissions": [
 		"activeTab",
 		"storage"
-	]
+	],
+	"background": {
+		"scripts": ["eventPage.js"],
+		"persistent": false
+	}
 }

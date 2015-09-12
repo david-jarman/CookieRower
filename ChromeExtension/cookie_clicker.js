@@ -1,3 +1,10 @@
+/* Inform the background page that 
+ * this tab should have a page-action */
+chrome.runtime.sendMessage({
+    from:    'content',
+    subject: 'showPageAction'
+});
+
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
 		var websocket_url = request.url;
@@ -18,7 +25,6 @@ chrome.runtime.onMessage.addListener(
 		ws.onmessage = receiveWorkoutInfo;
 	});
 	
-var prev_time = 0;
 var prev_distance = 0;
 	
 function receiveWorkoutInfo(e) {
@@ -34,27 +40,20 @@ function receiveWorkoutInfo(e) {
 		var distance = data.distance;
 		var spm = data.spm;
 		
-		var state = stroke_state - 1;
-		
-		if (prev_time == 0 || time < prev_time) {
-			prev_time = time;
-		}
-		
-		if (prev_distance == 0 || distance < prev_distance) {
+		if (distance < prev_distance) {
 			prev_distance = distance;
 		}
 		
-		var time_delta = time - prev_time;
 		var distance_delta = distance - prev_distance;
 		
-		var cookie_click_count = distance_delta * time_delta;
+		var cookie_click_count = distance_delta;
 		console.log("about to click this many times: " + cookie_click_count);
 		
 		for (var i = 0; i < cookie_click_count; i++) {
 			click_the_cookie(cookie, i);
 		}
 		
-		prev_time = time;
+		prev_distance = distance;
 	}
 }
 
