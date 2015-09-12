@@ -1,9 +1,13 @@
-/* Inform the background page that 
- * this tab should have a page-action */
 chrome.runtime.sendMessage({
-    from:    'content',
-    subject: 'showPageAction'
+	from: 'content',
+	subject: 'showPageAction'
 });
+
+// Content script first loaded so there is no connection available
+chrome.runtime.sendMessage({
+	status: 'Closed',
+	from: 'content',
+	subject: 'updateStatus'});
 
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
@@ -11,15 +15,24 @@ chrome.runtime.onMessage.addListener(
 		var ws = new WebSocket(websocket_url);
 		
 		ws.onopen = function() {
-			chrome.runtime.sendMessage({status:"Open"});
+			chrome.runtime.sendMessage({
+				status: 'Open',
+				from: 'content',
+				subject: 'updateStatus'});
 		};
 		
 		ws.onclose = function() {
-			chrome.runtime.sendMessage({status:"Closed"});
+			chrome.runtime.sendMessage({
+				status: 'Closed',
+				from: 'content',
+				subject: 'updateStatus'});
 		};
 		
 		ws.onerror = function() {
-			chrome.runtime.sendMessage({status:"Error"});
+			chrome.runtime.sendMessage({
+				status: 'Error',
+				from: 'content',
+				subject: 'updateStatus'});
 		};
 		
 		ws.onmessage = receiveWorkoutInfo;
@@ -40,7 +53,7 @@ function receiveWorkoutInfo(e) {
 		var distance = data.distance;
 		var spm = data.spm;
 		
-		if (distance < prev_distance) {
+		if (distance < prev_distance || prev_distance == 0) {
 			prev_distance = distance;
 		}
 		
