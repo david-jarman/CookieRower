@@ -9,33 +9,62 @@ chrome.runtime.sendMessage({
 	from: 'content',
 	subject: 'updateStatus'});
 
+ws = null;	
+
 chrome.runtime.onMessage.addListener(
 	function(request, sender, sendResponse) {
-		var websocket_url = request.url;
-		var ws = new WebSocket(websocket_url);
-		
-		ws.onopen = function() {
-			chrome.runtime.sendMessage({
-				status: 'Open',
-				from: 'content',
-				subject: 'updateStatus'});
-		};
-		
-		ws.onclose = function() {
-			chrome.runtime.sendMessage({
-				status: 'Closed',
-				from: 'content',
-				subject: 'updateStatus'});
-		};
-		
-		ws.onerror = function() {
-			chrome.runtime.sendMessage({
-				status: 'Error',
-				from: 'content',
-				subject: 'updateStatus'});
-		};
-		
-		ws.onmessage = receiveWorkoutInfo;
+		if (request.from == 'popup' && request.subject == 'startListening') {
+			var websocket_url = request.url;
+			ws = new WebSocket(websocket_url);
+			
+			ws.onopen = function() {
+				chrome.runtime.sendMessage({
+					status: 'Open',
+					from: 'content',
+					subject: 'updateStatus'});
+			};
+			
+			ws.onclose = function() {
+				chrome.runtime.sendMessage({
+					status: 'Closed',
+					from: 'content',
+					subject: 'updateStatus'});
+			};
+			
+			ws.onerror = function() {
+				chrome.runtime.sendMessage({
+					status: 'Error',
+					from: 'content',
+					subject: 'updateStatus'});
+			};
+			
+			ws.onmessage = receiveWorkoutInfo;
+		}
+		else if (request.from == 'popup' && request.subject == 'statusRequest') {
+			if (ws) {
+				var status = '';
+				switch(ws.readyState) {
+					case 0:
+						status = 'Closed';
+						break;
+					case 1:
+						status = 'Open';
+						break;
+					case 2:
+						status = 'Connecting';
+						break;
+					case 3:
+						status = 'Closed';
+						break;
+				}
+				
+				sendResponse({status: status});
+			}
+			else {
+				sendResponse({status: 'Closed'});
+			}
+		}
+
 	});
 	
 var prev_distance = 0;

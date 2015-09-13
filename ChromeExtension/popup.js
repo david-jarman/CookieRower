@@ -13,11 +13,22 @@ document.addEventListener('DOMContentLoaded', function() {
 		port_field.value = items.port;
 	});
 	
-	chrome.storage.sync.get('status', function (items) {
-		var status = document.getElementById('status');
-		status.innerHTML = 'Status: ' + items.status;
+	// Ask content script to get state of the socket
+	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+		chrome.tabs.sendMessage(tabs[0].id, {from: 'popup', subject: 'statusRequest'},
+		function(response) {
+			var status = document.getElementById('status');
+			status.innerHTML = 'Status: ' + response.status;
+		});
 	});
-} );
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender) {
+    if ((message.from === 'content') && (message.subject === 'updateStatus')) {
+        var status = document.getElementById('status');
+		status.innerHTML = 'Status: ' + message.status;
+    }
+});
 
 function start_listening() {
 	var port_field = document.getElementById('port_input');
@@ -33,13 +44,6 @@ function start_listening() {
 	
 	// Send url to the content script
 	chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
-		chrome.tabs.sendMessage(tabs[0].id, {url: websocket_url});
+		chrome.tabs.sendMessage(tabs[0].id, {from: 'popup', subject: 'startListening', url: websocket_url});
 	});
 }
-
-chrome.runtime.onMessage.addListener(function(message, sender) {
-    if ((message.from === 'eventPage') && (message.subject === 'updateStatus')) {
-        var status = document.getElementById('status');
-		status.innerHTML = 'Status: ' + message.status;
-    }
-});
